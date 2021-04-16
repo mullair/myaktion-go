@@ -1,0 +1,1 @@
+curl -H "Content-Type: application/json" -d '{"name":"Covid","organizerName":"Martin","donationMinimum":2,"targetAmount":100,"account":{"name":"Martin","bankName":"DKB","number":"123456"}}' http://localhost:8000/campaign
