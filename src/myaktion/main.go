@@ -23,6 +23,7 @@ func init() {
 }
 
 func main() {
+	db.init()
 	log.Println("Starting My-Aktion API server")
 	router := mux.NewRouter()
 	router.HandleFunc("/health", handler.Health).Methods("GET")
