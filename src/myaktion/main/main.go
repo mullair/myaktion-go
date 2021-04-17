@@ -28,10 +28,10 @@ func main() {
 	router.HandleFunc("/health", handler.Health).Methods("GET")
 	router.HandleFunc("/campaign", handler.CreateCampaign).Methods("POST")
 	router.HandleFunc("/campaigns", handler.GetCampaigns).Methods("GET")
-	router.HandleFunc("/campaign/{id}", handler.GetCampaign).Methods("GET")
-	router.HandleFunc("/campaign/{id}", handler.UpdateCampaign).Methods("PUT")
+	router.HandleFunc("/campaigns/{id}", handler.GetCampaign).Methods("GET")
+	router.HandleFunc("/campaigns/{id}", handler.UpdateCampaign).Methods("PUT")
 	router.HandleFunc("/campaign/{id}", handler.DeleteCampaign).Methods("DELETE")
-	router.HandleFunc("/campaigns/{id}/donation", handler.AddDonation).Methods("POST")
+	router.HandleFunc("/campaign/{id}/donation", handler.AddDonation).Methods("POST")
 	if err := http.ListenAndServe(":8000", router); err != nil {
 		log.Fatal(err)
 	}

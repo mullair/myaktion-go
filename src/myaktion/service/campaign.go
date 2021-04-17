@@ -1,10 +1,12 @@
 package service
 
 import (
-	"fmt"
+	"errors"
 
 	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 
+	"github.com/mullair/myaktion-go/src/myaktion/db"
 	"github.com/mullair/myaktion-go/src/myaktion/model"
 )
 
@@ -17,9 +19,10 @@ func init() {
 	campaignStore = make(map[uint]*model.Campaign)
 }
 func CreateCampaign(campaign *model.Campaign) error {
-	campaign.ID = actCampaignId
-	campaignStore[actCampaignId] = campaign
-	actCampaignId += 1
+	result := db.DB.Create(campaign)
+	if result.Error != nil {
+		return result.Error
+	}
 	log.Infof("Successfully stored new campaign with ID %v in database.", campaign.ID)
 	log.Tracef("Stored: %v", campaign)
 	return nil
@@ -27,51 +30,52 @@ func CreateCampaign(campaign *model.Campaign) error {
 
 func GetCampaigns() ([]model.Campaign, error) {
 	var campaigns []model.Campaign
-	for _, campaign := range campaignStore {
-		campaigns = append(campaigns, *campaign)
+	result := db.DB.Preload("Donations").Find(&campaigns)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 	log.Tracef("Retrieved: %v", campaigns)
 	return campaigns, nil
 }
 
-/*
-func UpdateCampaign(id uint, campaign *model.Campaign) error {
-	campaignStore[id] = campaign
-	return nil
+func GetCampaignById(id uint) (*model.Campaign, error) {
+	var campaign model.Campaign
+
+	result := db.DB.Preload("Donations").Find(&campaign, id)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	log.Tracef("Retrieved: %v", campaign)
+
+	return &campaign, nil
 }
-*/
 
 func UpdateCampaign(id uint, campaign *model.Campaign) (*model.Campaign, error) {
-	existingCampaign, err := GetCampaignById(id)
-	if err != nil {
-		return existingCampaign, err
+	//var campaign model.Campaign
+	existingCampaign, _ := GetCampaignById(id)
+	result := db.DB.Model(&existingCampaign).Updates(campaign)
+	if result.Error != nil {
+		return nil, result.Error
 	}
-	existingCampaign.Name = campaign.Name
-	existingCampaign.Organizer = campaign.Organizer
-	existingCampaign.TargetAmount = campaign.TargetAmount
-	existingCampaign.DonationMinimum = campaign.DonationMinimum
 	entry := log.WithField("ID", id)
 	entry.Info("Successfully updated campaign.")
-	entry.Tracef("Updated: %v", existingCampaign)
+	entry.Tracef("Updated: %v", &campaign)
 	return existingCampaign, nil
 
 }
 
-func GetCampaignById(id uint) (*model.Campaign, error) {
-	campaign := campaignStore[id]
-	log.Tracef("campaign found and read", campaign)
-	return campaign, nil
-}
-
 func DeleteCampaign(id uint) (*model.Campaign, error) {
-	campaign := campaignStore[id]
-	if campaign == nil {
-		log.Tracef("404 campaign not found")
-		return nil, fmt.Errorf("no campaign with ID %d", id)
+	campaign, _ := GetCampaignById(id)
+	result := db.DB.Delete(&campaign)
+	if result.Error != nil {
+		return nil, result.Error
 	}
-	delete(campaignStore, id)
 	entry := log.WithField("ID", id)
 	entry.Info("Successfully deleted campaign.")
-	log.Infof("Successfully deleted campaign with ID %d", id)
+	entry.Tracef("Deleted: %v", &campaign)
 	return campaign, nil
 }
