@@ -31,6 +31,7 @@ func main() {
 	router.HandleFunc("/campaign/{id}", handler.GetCampaign).Methods("GET")
 	router.HandleFunc("/campaign/{id}", handler.UpdateCampaign).Methods("PUT")
 	router.HandleFunc("/campaign/{id}", handler.DeleteCampaign).Methods("DELETE")
+	router.HandleFunc("/campaigns/{id}/donation", handler.AddDonation).Methods("POST")
 	if err := http.ListenAndServe(":8000", router); err != nil {
 		log.Fatal(err)
 	}
