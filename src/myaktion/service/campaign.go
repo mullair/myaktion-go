@@ -42,7 +42,7 @@ func GetCampaignById(id uint) (*model.Campaign, error) {
 	var campaign model.Campaign
 
 	result := db.DB.Preload("Donations").Find(&campaign, id)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) { //keine campaign gefunden
 		return nil, nil
 	}
 
